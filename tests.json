@@ -1,13 +1,24 @@
 [
   {
-    "flow_name": "fluxo_cadastro_usuario",
+    "flow_name": "EnviarCadastro",
     "required_calls": {
       "envio_cadastro_verif_campos_to_fix": "success",
       "envio_cadastro_verif_formulario_valido": "success",
       "envio_cadastro_iniciando_envio": "success",
       "envio_cadastro_resposta_recebida": "success",
       "envio_cadastro_verif_resposta_recebida": "success",
-      "envio_cadastro_error_catch": "success"
+      "backend_recebendo": "success",
+      "backend_associando_reqbody": "success",
+      "backend_verif_tabela_users_table": "success",
+      "backend_guid_email_exists": "success",
+      "backend_if_guid_or_email_exists": "success",
+      "backend_friend_id_prev_exists": "success",
+      "backend_friend_id_if_exists": "success",
+      "backend_bcrypt_hash_sync": "success",
+      "backend_insert_into_users_table": "success",
+      "backend_insert_into_users_table_success": "success",
+      "backend_insert_into_piloto_equipe_temporada": "success",
+      "backend_insert_into_piloto_equipe_temporada_complete": "success"
     },
     "timeout": 8000
   }
