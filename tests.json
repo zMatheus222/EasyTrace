@@ -1,0 +1,14 @@
+[
+  {
+    "flow_name": "fluxo_cadastro_usuario",
+    "required_calls": {
+      "envio_cadastro_verif_campos_to_fix": "success",
+      "envio_cadastro_verif_formulario_valido": "success",
+      "envio_cadastro_iniciando_envio": "success",
+      "envio_cadastro_resposta_recebida": "success",
+      "envio_cadastro_verif_resposta_recebida": "success",
+      "envio_cadastro_error_catch": "success"
+    },
+    "timeout": 8000
+  }
+]

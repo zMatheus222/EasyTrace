@@ -1,0 +1,16 @@
+{
+    "name": "easytrace",
+    "version": "1.0.0",
+    "description": "Projeto de rastreamento e teste de fluxos.",
+    "main": "main.js",
+    "type": "module",
+    "scripts": {
+        "start": "node main.js"
+    },
+    "dependencies": {
+        "cors": "^2.8.5",
+        "express": "^4.18.2",
+        "fs": "^0.0.1-security",
+        "pg": "^8.11.3"
+    }
+}
