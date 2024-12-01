@@ -128,6 +128,8 @@ app.post('/api/receive_trace', async (req, res) => {
 
     // Armazenar ultimo passo recebido
     testStateToCompare.last_step = { step_name, step_number };
+
+    console.log(`[EasyTrace] before if || testStateToCompare: `, testStateToCompare);
     
     if (testStateToCompare.received_calls[step_name]) {
         testStateToCompare.received_calls[step_name].expected_value = status;
