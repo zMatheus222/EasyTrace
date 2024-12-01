@@ -2,7 +2,7 @@
   {
     "flow_name": "EnviarCadastro",
     "required_calls": {
-      "envio_cadastro_verif_campos_to_fix": "success",
+      "envio_cadastro_verif_campos_to_fix": "REGEX:^\\d{2}\\.\\d{2}$",
       "envio_cadastro_verif_formulario_valido": "success",
       "envio_cadastro_iniciando_envio": "success",
       "envio_cadastro_resposta_recebida": "success",

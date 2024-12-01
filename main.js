@@ -117,14 +117,24 @@ app.post('/api/receive_trace', async (req, res) => {
         step => {
             const expectedValue = foundedTestConfig.required_calls[step];
             const receivedValue = testStateToCompare.received_calls[step];
-
-            // Se o valor esperado for uma RegExp, use o método test()
-            if (expectedValue instanceof RegExp) {
-                return expectedValue.test(receivedValue);
+    
+            // Se esperado e recebido são iguais (comparação direta)
+            if (expectedValue === receivedValue) {
+                return true;
             }
+    
+            // Se a string começa com 'REGEX:', trata como expressão regular
+            if (expectedValue.startsWith("REGEX:")) {
+                
+                // Remove o prefixo e cria uma expressão regular
+                const regexPattern = expectedValue.replace(/^REGEX:/, '');
+                const regex = new RegExp(regexPattern);  // Converte para RegExp
 
-            // Comparação padrão para strings normais (success, error, etc.)
-            return receivedValue === expectedValue;
+                return regex.test(receivedValue);        // Aplica o teste regex
+            }
+    
+            // Se não bate com o valor esperado
+            return false;
         }
     );
 
