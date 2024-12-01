@@ -28,7 +28,7 @@ const testState = new Map();
 test_configs.forEach(testCfg => {
     const received_calls = {};
     Object.keys(testCfg.required_calls).forEach(step => {
-        received_calls[step] = { expected_value: null, timeout: null };
+        received_calls[step] = { expected_value: step.expected_value, timeout: step.timeout };
     });
     testState.set(testCfg.flow_name, {
         received_calls,
@@ -43,10 +43,6 @@ console.log(`[testCfg] testState post forEach: `, testState);
 // Reseta o estado do teste após conclusão
 function resetTestState(flow_name) {
     testState.set(flow_name, {
-        received_calls: {
-            expected_value: null,
-            timeout: null,
-        },
         start_time: null,
         active: false,
         last_step: { step_name: null, step_number: null }
