@@ -43,6 +43,16 @@ test_configs.forEach(testCfg => {
     console.log(`[test_configs.forEach] Estado inicial do teste (${testCfg.flow_name}):`, JSON.stringify(testState.get(testCfg.flow_name), null, 4));
 });
 
+test_configs.forEach(testCfg => {
+    if (!testCfg.required_calls || Object.keys(testCfg.required_calls).length === 0) {
+        console.warn(`[Warning] required_calls está vazio ou ausente para o fluxo ${testCfg.flow_name}`);
+    } else {
+        Object.keys(testCfg.required_calls).forEach(step => {
+            console.log(`[Debug] Configuração do passo "${step}":`, testCfg.required_calls[step]);
+        });
+    }
+});
+
 // Reseta o estado do teste após conclusão
 function resetTestState(flow_name) {
     testState.set(flow_name, {
@@ -109,6 +119,10 @@ app.post('/api/receive_trace', async (req, res) => {
     if (!flow_name || !step_name || !step_number || !status || !description) {
         return res.status(400).send('[EasyTrace] Parâmetros inválidos ou incompletos.');
     }
+    if (!testState.has(flow_name)) {
+        console.error(`[Error] O estado do fluxo "${flow_name}" não foi encontrado.`);
+        return res.status(400).send({ error: `Fluxo "${flow_name}" não inicializado.` });
+    }
 
     console.log(`[EasyTrace] [${new Date().toISOString()}] 🔍 Trace recebido: Teste "${step_name}", Passo "${step_number}", Status "${status}", Descrição: ${description}`);
 
@@ -118,6 +132,12 @@ app.post('/api/receive_trace', async (req, res) => {
     }
 
     const testStateToCompare = testState.get(flow_name);
+    if (testStateToCompare) {
+        console.log(`[Debug] Passos esperados em "${flow_name}":`, Object.keys(testStateToCompare.received_calls));
+        if (!testStateToCompare.received_calls.hasOwnProperty(step_name)) {
+            console.warn(`[Warning] O passo "${step_name}" não foi configurado no fluxo "${flow_name}".`);
+        }
+    }
     if (!testStateToCompare.active) {
         testStateToCompare.start_time = Date.now();
         testStateToCompare.active = true;
