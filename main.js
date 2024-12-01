@@ -61,7 +61,6 @@ setInterval(() => {
                 console.log(`[EasyTrace] Verificando teste ${flow_name}: | testStateToCompare: `, testStateToCompare);
 
                 let all_steps = testStateToCompare.received_calls;
-
                 if (missingSteps.length > 0) {
                     console.log(`[EasyTrace] ⚠️ Passos ausentes: ${missingSteps.join(', ')}`); // Melhorar a leitura do log
                 }
@@ -115,7 +114,18 @@ app.post('/api/receive_trace', async (req, res) => {
     testStateToCompare.received_calls[step_name] = status;
 
     const allStepsConcluded = Object.keys(foundedTestConfig.required_calls).every(
-        step => testStateToCompare.received_calls[step] === foundedTestConfig.required_calls[step]
+        step => {
+            const expectedValue = foundedTestConfig.required_calls[step];
+            const receivedValue = testStateToCompare.received_calls[step];
+
+            // Se o valor esperado for uma RegExp, use o método test()
+            if (expectedValue instanceof RegExp) {
+                return expectedValue.test(receivedValue);
+            }
+
+            // Comparação padrão para strings normais (success, error, etc.)
+            return receivedValue === expectedValue;
+        }
     );
 
     if (allStepsConcluded) {
