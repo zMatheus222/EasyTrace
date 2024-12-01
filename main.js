@@ -128,7 +128,13 @@ app.post('/api/receive_trace', async (req, res) => {
 
     // Armazenar ultimo passo recebido
     testStateToCompare.last_step = { step_name, step_number };
-    testStateToCompare.received_calls[step_name].expected_value = status;
+    
+    if (testStateToCompare.received_calls[step_name]) {
+        testStateToCompare.received_calls[step_name].expected_value = status;
+    } else {
+        console.error(`[EasyTrace] Erro: O passo "${step_name}" não foi encontrado em received_calls`);
+        return res.status(400).send('[EasyTrace] Passo não encontrado no estado do teste.');
+    }
 
     console.log(`[EasyTrace] Itens Armazenados: `, testStateToCompare);
 
