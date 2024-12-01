@@ -128,10 +128,14 @@ app.post('/api/receive_trace', async (req, res) => {
         testStateToCompare.active = true;
     }
 
+    console.log(`[EasyTrace] Armazenando ultimo passo recebido, step_name: ${step_name}, step_number: ${step_number}, status: ${status}, timeout: ${timeout}`);
+
     // Armazenar ultimo passo recebido
     testStateToCompare.last_step = { step_name, step_number };
     testStateToCompare.received_calls[step_name].expected_value = status;
     testStateToCompare.received_calls[step_name].timeout = timeout;
+
+    console.log(`[EasyTrace] Itens Armazenados: `, testStateToCompare);
 
     const allStepsConcluded = Object.keys(foundedTestConfig.required_calls).every(
 
