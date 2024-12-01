@@ -40,7 +40,6 @@ test_configs.forEach(testCfg => {
         last_step: { step_name: null, step_number: null }
     });
 
-    console.log(`[test_configs.forEach] Estado inicial do teste (${testCfg.flow_name}):`, JSON.stringify(testState.get(testCfg.flow_name), null, 4));
 });
 
 test_configs.forEach(testCfg => {
@@ -55,11 +54,18 @@ test_configs.forEach(testCfg => {
 
 // Reseta o estado do teste após conclusão
 function resetTestState(flow_name) {
-    testState.set(flow_name, {
-        start_time: null,
-        active: false,
-        last_step: { step_name: null, step_number: null }
-    });
+    const currentState = testState.get(flow_name);
+    if (currentState) {
+        currentState.start_time = null;
+        currentState.active = false;
+        currentState.last_step = { step_name: null, step_number: null };
+        Object.keys(currentState.received_calls).forEach(step => {
+            currentState.received_calls[step].expected_value = null;
+        });
+        testState.set(flow_name, currentState);
+    } else {
+        console.error(`[Error] Cannot reset state for non-existent flow "${flow_name}"`);
+    }
 }
 
 // Verifica timeout periodicamente
@@ -132,12 +138,22 @@ app.post('/api/receive_trace', async (req, res) => {
     }
 
     const testStateToCompare = testState.get(flow_name);
-    if (testStateToCompare) {
-        console.log(`[Debug] Passos esperados em "${flow_name}":`, Object.keys(testStateToCompare.received_calls));
-        if (!testStateToCompare.received_calls.hasOwnProperty(step_name)) {
-            console.warn(`[Warning] O passo "${step_name}" não foi configurado no fluxo "${flow_name}".`);
-        }
+    if (!testStateToCompare) {
+        console.error(`[Error] Test state for flow "${flow_name}" not found.`);
+        return res.status(400).send(`[EasyTrace] Test state for flow "${flow_name}" not found.`);
     }
+
+    if (!testStateToCompare.received_calls) {
+        console.error(`[Error] received_calls for flow "${flow_name}" is undefined.`);
+        return res.status(400).send(`[EasyTrace] received_calls for flow "${flow_name}" is undefined.`);
+    }
+
+    if (!testStateToCompare.received_calls.hasOwnProperty(step_name)) {
+        console.warn(`[Warning] The step "${step_name}" was not configured in the flow "${flow_name}".`);
+    }
+
+
+
     if (!testStateToCompare.active) {
         testStateToCompare.start_time = Date.now();
         testStateToCompare.active = true;
@@ -148,7 +164,7 @@ app.post('/api/receive_trace', async (req, res) => {
     // Armazenar ultimo passo recebido
     testStateToCompare.last_step = { step_name, step_number };
 
-    console.log(`[EasyTrace] before if || testStateToCompare: `, testStateToCompare);
+    console.log(`[EasyTrace] Current test state for "${flow_name}":`, JSON.stringify(testStateToCompare, null, 2));
     
     if (testStateToCompare.received_calls[step_name]) {
         testStateToCompare.received_calls[step_name].expected_value = status;
