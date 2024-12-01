@@ -4,7 +4,13 @@ import { sendToPg } from './postgresql.js';
 
 import * as fs from 'fs';
 
-const test_configs = JSON.parse(fs.readFileSync('./tests.json', 'utf-8'));
+let test_configs = [];
+try {
+    test_configs = JSON.parse(fs.readFileSync('./tests.json', 'utf-8'));
+} catch (error) {
+    console.error(`[EasyTrace] Erro ao ler arquivo de configuração: ${error.message}`);
+    process.exit(1);
+}
 
 const app = express();
 
@@ -74,7 +80,7 @@ setInterval(() => {
 
                 resetTestState(flow_name);
             }
-            
+
         } catch (error) {
             console.error(`[EasyTrace] Erro no monitoramento de timeout: ${error}`);
         }
@@ -91,7 +97,7 @@ app.post('/api/receive_trace', async (req, res) => {
         return res.status(400).send('[EasyTrace] Parâmetros inválidos ou incompletos.');
     }
 
-    console.log(`[EasyTrace] 🔍 Trace recebido: Teste "${step_name}", Passo "${step_number}", Status "${status}", Descrição: ${description}`);
+    console.log(`[EasyTrace] [${new Date().toISOString()}] 🔍 Trace recebido: Teste "${step_name}", Passo "${step_number}", Status "${status}", Descrição: ${description}`);
 
     const foundedTestConfig = test_configs.find(test => test.flow_name === flow_name);
     if (!foundedTestConfig) {

@@ -15,6 +15,10 @@ async function sendToPg(flow_name, step_name, step_number, all_steps, status, de
 
     try {
 
+        if (client._ending) {
+            await client.connect(); // Reconecta se necessário
+        }
+
         if (client._connected === false) {
             console.error('[sendToPg] Conexão ao banco de dados não está ativa.');
             return false;
