@@ -9,14 +9,14 @@ const client = new Client({
     port: 5432,
 });
 
-async function sendToPg(flow_name, step_name, step_number, status, description) {
+async function sendToPg(flow_name, step_name, step_number, missing_steps, status, description) {
 
     console.log(`[sendToPg] Called!`);
 
     try {
         const res = await client.query(
-            `INSERT INTO base.test_traces (flow_name, step_name, step_number, status, description) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-            [flow_name, step_name, step_number, status, description]
+            `INSERT INTO base.test_traces (flow_name, step_name, step_number, missing_steps, status, description) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+            [flow_name, step_name, step_number, missing_steps, status, description]
         );
 
         if (res.rows.length === 0) {

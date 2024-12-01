@@ -7,6 +7,7 @@
       "envio_cadastro_iniciando_envio": "success",
       "envio_cadastro_resposta_recebida": "success",
       "envio_cadastro_verif_resposta_recebida": "success",
+      "envio_cadastro_error_catch": "success",
       "backend_recebendo": "success",
       "backend_associando_reqbody": "success",
       "backend_verif_tabela_users_table": "success",

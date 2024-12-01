@@ -20,7 +20,8 @@ test_configs.forEach(testCfg => {
     testState.set(testCfg.flow_name, {
         received_calls: {},
         start_time: null,
-        active: false
+        active: false,
+        last_step: { step_name: null, step_number: null}
     });
 });
 
@@ -39,7 +40,7 @@ function resetTestState(flow_name) {
 console.log(`[EasyTrace] SizeOf test_configs[]: ${test_configs.length}`);
 
 setInterval(() => {
-    test_configs.forEach(testCfg => {
+    test_configs.forEach(async (testCfg) => {
         const { flow_name, timeout, required_calls } = testCfg;
         const testStateToCompare = testState.get(flow_name);
 
@@ -47,11 +48,25 @@ setInterval(() => {
             const missingSteps = Object.keys(required_calls).filter(step => !testStateToCompare.received_calls[step]);
             console.log(`[EasyTrace] Verificando teste ${flow_name}: | testStateToCompare: `, testStateToCompare);
 
+            let missing_steps = "N/A";
+
             if (missingSteps.length > 0) {
+                missing_steps = missingSteps.join(', ');
                 console.log(`[EasyTrace] ⚠️ Passos ausentes: ${missingSteps.join(', ')}`);
             }
 
             console.log(`[EasyTrace] ❌ Teste "${flow_name}" falhou por timeout.`);
+
+            // Recupera os últimos valores recebidos antes do timeout
+            const { step_name, step_number } = testStateToCompare.last_step;
+
+            const success = await sendToPg(flow_name, step_name, step_number, missing_steps, "error", "Teste falhou por timeout");
+            if (!success) {
+                console.error('[processTrace] Falha ao salvar o trace no banco de dados!');
+            } else {
+                console.log('[processTrace] Trace salvo no banco de dados com sucesso!');
+            }
+
             resetTestState(flow_name);
         }
     });
@@ -80,6 +95,8 @@ app.post('/api/receive_trace', async (req, res) => {
         testStateToCompare.active = true;
     }
 
+    // Armazenar ultimo passo recebido
+    testStateToCompare.last_step = { step_name, step_number };
     testStateToCompare.received_calls[step_name] = status;
 
     const allStepsConcluded = Object.keys(foundedTestConfig.required_calls).every(
@@ -90,7 +107,7 @@ app.post('/api/receive_trace', async (req, res) => {
         console.log(`[EasyTrace] ✅ Fluxo "${flow_name}" passou!`);
         resetTestState(flow_name);
 
-        const success = await sendToPg(flow_name, step_name, step_number, status, description);
+        const success = await sendToPg(flow_name, step_name, step_number, "N/A", status, description);
         if (!success) {
             console.error('[processTrace] Falha ao salvar o trace no banco de dados!');
         } else {
