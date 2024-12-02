@@ -21,5 +21,11 @@
       "backend_insert_into_piloto_equipe_temporada": { "expected_value": "success", "timeout": 3000 },
       "backend_insert_into_piloto_equipe_temporada_complete": { "expected_value": "success", "timeout": 3000 }
     }
+  },
+  {
+    "flow_name": "xxxxx",
+    "required_calls": {
+      "passo_1": { "expected_value": "success", "timeout": 3000 }
+    }
   }
 ]

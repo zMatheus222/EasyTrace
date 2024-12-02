@@ -29,7 +29,7 @@ test_configs.forEach(testCfg => {
     const received_calls = {};
     Object.keys(testCfg.required_calls).forEach(step => {
         received_calls[step] = {
-            expected_value: testCfg.required_calls[step].expected_value,
+            expected_value: null,
             timeout: testCfg.required_calls[step].timeout
         };
     });
@@ -37,6 +37,7 @@ test_configs.forEach(testCfg => {
         received_calls,
         start_time: null,
         active: false,
+        missing_steps: [],
         last_step: { step_name: null, step_number: null }
     });
 
@@ -58,6 +59,7 @@ function resetTestState(flow_name) {
     if (currentState) {
         currentState.start_time = null;
         currentState.active = false;
+        currentState.missing_steps = [];
         currentState.last_step = { step_name: null, step_number: null };
         Object.keys(currentState.received_calls).forEach(step => {
             currentState.received_calls[step].expected_value = null;
@@ -80,19 +82,29 @@ setInterval(() => {
             const testStateToCompare = testState.get(flow_name);
 
             if (testStateToCompare.active) {
-
-                // comparar timeout recebido externo com o definido na configuração do teste localmente.
-                const missingSteps = Object.keys(required_calls).filter(step => {
-                    if (!testStateToCompare.received_calls[step]) return (Date.now() > required_calls[step].timeout);
-                    return false;
-                });
-
+                
                 console.log(`[EasyTrace] Verificando teste ${flow_name}: | testStateToCompare: `, testStateToCompare);
 
+                // comparar timeout recebido externo com o definido na configuração do teste localmente.
+                Object.keys(required_calls).filter(step => {
+                    // console.log(`[c] step: `, step);
+                    // console.log(`[c] testStateToCompare.received_calls[step]: `, testStateToCompare.received_calls[step]);
+                    // console.log(`[c] testStateToCompare.received_calls[step].expected_value: `, testStateToCompare.received_calls[step].expected_value);
+                    // console.log(`[c] testStateToCompare.received_calls[step].expected_value == null: `, testStateToCompare.received_calls[step].expected_value == null);
+                    if (testStateToCompare.received_calls[step].expected_value == null) {
+                        testStateToCompare.missing_steps.push(step);
+                    }
+                });
+
+                console.log(`[EasyTrace] testStateToCompare.missing_steps: `, testStateToCompare.missing_steps);
+
                 let all_steps = testStateToCompare.received_calls;
+
+                //console.log(`[EasyTrace] testStateToCompare.missing_steps.length: ${testStateToCompare.missing_steps.length}`);
+                //console.log(`[EasyTrace] time comparation: ${Date.now() - testStateToCompare.start_time > required_calls[testStateToCompare.last_step.step_name].timeout}`);
                 
-                if (missingSteps.length > 0) {
-                    console.log(`[EasyTrace] ⚠️ Passos ausentes: ${missingSteps.join(', ')}`); // Melhorar a leitura do log
+                if (testStateToCompare.missing_steps.length > 0 && Date.now() - testStateToCompare.start_time > required_calls[testStateToCompare.last_step.step_name].timeout) {
+                    console.log(`[EasyTrace] ⚠️ Passos ausentes: ${testStateToCompare.missing_steps.join(', ')}`); // Melhorar a leitura do log
                     
                     console.log(`[EasyTrace] ❌ Teste "${flow_name}" falhou por timeout.`);
                     
@@ -125,12 +137,13 @@ app.post('/api/receive_trace', async (req, res) => {
     if (!flow_name || !step_name || !step_number || !status || !description) {
         return res.status(400).send('[EasyTrace] Parâmetros inválidos ou incompletos.');
     }
+
+    console.log(`[EasyTrace] [${new Date().toISOString()}] 🔍 Trace recebido: Teste "${step_name}", Passo "${step_number}", Status "${status}", Descrição: ${description}`);
+
     if (!testState.has(flow_name)) {
         console.error(`[Error] O estado do fluxo "${flow_name}" não foi encontrado.`);
         return res.status(400).send({ error: `Fluxo "${flow_name}" não inicializado.` });
     }
-
-    console.log(`[EasyTrace] [${new Date().toISOString()}] 🔍 Trace recebido: Teste "${step_name}", Passo "${step_number}", Status "${status}", Descrição: ${description}`);
 
     const foundedTestConfig = test_configs.find(test => test.flow_name === flow_name);
     if (!foundedTestConfig) {
@@ -151,8 +164,6 @@ app.post('/api/receive_trace', async (req, res) => {
     if (!testStateToCompare.received_calls.hasOwnProperty(step_name)) {
         console.warn(`[Warning] The step "${step_name}" was not configured in the flow "${flow_name}".`);
     }
-
-
 
     if (!testStateToCompare.active) {
         testStateToCompare.start_time = Date.now();
@@ -175,15 +186,13 @@ app.post('/api/receive_trace', async (req, res) => {
 
     console.log(`[EasyTrace] Itens Armazenados: `, testStateToCompare);
 
-    const allStepsConcluded = Object.keys(foundedTestConfig.required_calls).every(
-
-        step => {
-
+    const allStepsConcluded = Object.keys(foundedTestConfig.required_calls).every(step => {
+        
             const expectedValue = foundedTestConfig.required_calls[step].expected_value;
             const receivedValue = testStateToCompare.received_calls[step].expected_value;
     
-            // Se esperado e recebido são iguais (comparação direta)
             if (expectedValue == null || receivedValue == null) {
+                testStateToCompare.missing_steps.push(step);
                 return false; // ou algum outro valor padrão
             }
     
@@ -194,16 +203,28 @@ app.post('/api/receive_trace', async (req, res) => {
                 const regexPattern = expectedValue.replace(/^REGEX:/, '');
                 const regex = new RegExp(regexPattern);  // Converte para RegExp
 
-                return regex.test(receivedValue);        // Aplica o teste regex
+                if (!regex.test(receivedValue)) {
+                    testStateToCompare.missing_steps.push(step);
+                    return false;
+                }
+
+                return true;
             }
-    
-            // Se não bate com o valor esperado
-            return false;
+
+            console.log(`[xc] expectedValue !== receivedValue: `, expectedValue !== receivedValue);
+            if (expectedValue !== receivedValue) {
+                testStateToCompare.missing_steps.push(step);
+                return false;
+            }
+
+            
+            return true;
+
         }
     );
 
     if (allStepsConcluded) {
-        console.log(`[EasyTrace] ✅ Fluxo "${flow_name}" passou!`);
+        console.log(`[EasyTrace] ✅ Fluxo "${flow_name}" concluído com sucesso!`);
         
         const success = await sendToPg(flow_name, step_name, step_number, testStateToCompare.received_calls, status, description);
         if (!success) {
@@ -212,10 +233,10 @@ app.post('/api/receive_trace', async (req, res) => {
             console.log('[processTrace] Trace salvo no banco de dados com sucesso!');
         }
         
+        resetTestState(flow_name);
         return res.status(200).send('[EasyTrace] Teste concluído com sucesso.');
     }
 
-    resetTestState(flow_name);
     
     res.status(200).send('[EasyTrace] Trace recebido e validado.');
 });
