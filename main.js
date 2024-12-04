@@ -224,8 +224,6 @@ main();
 
 // Criar um endpoint que recebe traces
 app.post('/api/receive_trace', async (req, res) => {
-    
-    console.log(`[EasyTrace] /api/receive_trace, req.body: `, req.body);
 
     const { flow_name, step_name, step_number, status, description } = req.body;
     if (!flow_name || !step_name || !step_number || !status || !description) {
