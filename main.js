@@ -203,6 +203,7 @@ app.post('/api/receive_trace', async (req, res) => {
                 const regexPattern = expectedValue.replace(/^REGEX:/, '');
                 const regex = new RegExp(regexPattern);  // Converte para RegExp
 
+                // faz a comparação com regex, se for false adiciona a missing steps e retorna false
                 if (!regex.test(receivedValue)) {
                     testStateToCompare.missing_steps.push(step);
                     return false;
@@ -211,13 +212,12 @@ app.post('/api/receive_trace', async (req, res) => {
                 return true;
             }
 
-            console.log(`[xc] expectedValue !== receivedValue: `, expectedValue !== receivedValue);
+            // parecido com a cima, só que para comparação sem regex
             if (expectedValue !== receivedValue) {
                 testStateToCompare.missing_steps.push(step);
                 return false;
             }
 
-            
             return true;
 
         }

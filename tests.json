@@ -23,9 +23,52 @@
     }
   },
   {
-    "flow_name": "xxxxx",
+    "flow_name": "EnviarLogin",
     "required_calls": {
-      "passo_1": { "expected_value": "success", "timeout": 3000 }
+      "passo_1": { "expected_value": "success", "timeout": 1000 },
+      "passo_2": { "expected_value": "REGEX:\\d{2}", "timeout": 2000 },
+      "passo_3": { "expected_value": "REGEX:\\item.+", "timeout": 3000 },
+      "passo_4": { "expected_value": "success", "timeout": 1000 },
+      "passo_5": { "expected_value": "success", "timeout": 1000 }
+    }
+  },
+  {
+    "flow_name": "AccModuleServer-ReceiveEvent",
+    "required_calls": {
+      
+      "front_first_call": { "expected_value": "success", "timeout": 2000 },
+
+      "backend_first_received": { "expected_value": "success", "timeout": 2000 },
+      "backend_reqbody_if": { "expected_value": "success", "timeout": 2000 },
+      "backend_etapa_primary_id": { "expected_value": "success", "timeout": 2000 },
+      "backend_calling_updates": { "expected_value": "success", "timeout": 2000 },
+      "backend_started_updates": { "expected_value": "success", "timeout": 2000 },
+      "backend_updated_get_eventos": { "expected_value": "success", "timeout": 2000 },
+      "backend_updated_temporadas": { "expected_value": "success", "timeout": 2000 },
+      "backend_make_events_iniciado": { "expected_value": "success", "timeout": 2000 },
+      "backend_make_events_variables": { "expected_value": "success", "timeout": 2000 },
+      "backend_make_events_copy_server_base": { "expected_value": "success", "timeout": 2000 },
+      "backend_make_events_update_event_json": { "expected_value": "success", "timeout": 2000 },
+      "backend_make_events_update_event_rules": { "expected_value": "success", "timeout": 2000 },
+      "backend_make_events_update_settings": { "expected_value": "success", "timeout": 2000 },
+      "backend_make_events_calculate_start_time": { "expected_value": "success", "timeout": 2000 },
+      "backend_make_events_check_start_time": { "expected_value": "success", "timeout": 2000 },
+      "backend_make_events_finished": { "expected_value": "success", "timeout": 2000 },
+      "backend_server_monitor_finished": { "expected_value": "success", "timeout": 2000 },
+      
+      
+      "backend_insert_event_on_db_called": { "expected_value": "success", "timeout": 2000 },
+      "backend_insert_created_config": { "expected_value": "success", "timeout": 2000 },
+      "backend_insert_created_pg_client": { "expected_value": "success", "timeout": 2000 },
+      "backend_insert_client_connected_begin": { "expected_value": "success", "timeout": 2000 },
+      "backend_insert_nova_temporada_encontrada": { "expected_value": "success", "timeout": 2000 },
+      "backend_insert_insert_montado": { "expected_value": "success", "timeout": 2000 },
+      "backend_insert_resultEtapaInsert_ok": { "expected_value": "success", "timeout": 2000 },
+      "backend_insert_resultLiveTable": { "expected_value": "success", "timeout": 2000 },
+      "backend_insert_for_acc_sessoes": { "expected_value": "success", "timeout": 2000 },
+      "backend_insert_commit_ok": { "expected_value": "success", "timeout": 2000 },
+      "backend_insert_update_endpoints": { "expected_value": "success", "timeout": 2000 },
+      "backend_insert_catch": { "expected_value": "success", "timeout": 2000 }
     }
   }
 ]
