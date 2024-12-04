@@ -88,25 +88,14 @@ setInterval(() => {
                 // Limpar missing_steps antes de verificar
                 testStateToCompare.missing_steps = [];
 
-                // comparar timeout recebido externo com o definido na configuração do teste localmente.
                 Object.keys(required_calls).filter(step => {
-                    // console.log(`[c] step: `, step);
-                    // console.log(`[c] testStateToCompare.received_calls[step]: `, testStateToCompare.received_calls[step]);
-                    // console.log(`[c] testStateToCompare.received_calls[step].expected_value: `, testStateToCompare.received_calls[step].expected_value);
-                    // console.log(`[c] testStateToCompare.received_calls[step].expected_value == null: `, testStateToCompare.received_calls[step].expected_value == null);
                     if (testStateToCompare.received_calls[step].expected_value == null) {
                         testStateToCompare.missing_steps.push(step);
                     }
                 });
 
-                console.log(`[EasyTrace] testStateToCompare.missing_steps: `, testStateToCompare.missing_steps);
-
-                //console.log(`[EasyTrace] testStateToCompare.missing_steps.length: ${testStateToCompare.missing_steps.length}`);
-                //console.log(`[EasyTrace] time comparation: ${Date.now() - testStateToCompare.start_time > required_calls[testStateToCompare.last_step.step_name].timeout}`);
-                
                 if (testStateToCompare.missing_steps.length > 0 && Date.now() - testStateToCompare.start_time > required_calls[testStateToCompare.last_step.step_name].timeout) {
                     console.log(`[EasyTrace] ⚠️ Passos ausentes: ${testStateToCompare.missing_steps.join(', ')}`); // Melhorar a leitura do log
-                    
                     console.log(`[EasyTrace] ❌ Teste "${flow_name}" falhou por timeout.`);
                     
                     // Recupera os últimos valores recebidos antes do timeout
@@ -120,6 +109,7 @@ setInterval(() => {
                         console.log('[processTrace] Trace salvo no banco de dados com sucesso!');
                     }
                     
+                    // só deve rodar em caso de falha
                     resetTestState(flow_name);
                 }
             }
