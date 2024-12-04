@@ -85,6 +85,9 @@ setInterval(() => {
                 
                 console.log(`[EasyTrace] Verificando teste ${flow_name}: | testStateToCompare: `, testStateToCompare);
 
+                // Limpar missing_steps antes de verificar
+                testStateToCompare.missing_steps = [];
+
                 // comparar timeout recebido externo com o definido na configuração do teste localmente.
                 Object.keys(required_calls).filter(step => {
                     // console.log(`[c] step: `, step);
@@ -98,8 +101,6 @@ setInterval(() => {
 
                 console.log(`[EasyTrace] testStateToCompare.missing_steps: `, testStateToCompare.missing_steps);
 
-                let all_steps = testStateToCompare.received_calls;
-
                 //console.log(`[EasyTrace] testStateToCompare.missing_steps.length: ${testStateToCompare.missing_steps.length}`);
                 //console.log(`[EasyTrace] time comparation: ${Date.now() - testStateToCompare.start_time > required_calls[testStateToCompare.last_step.step_name].timeout}`);
                 
@@ -110,6 +111,7 @@ setInterval(() => {
                     
                     // Recupera os últimos valores recebidos antes do timeout
                     const { step_name, step_number } = testStateToCompare.last_step;
+                    const all_steps = testStateToCompare.received_calls;
                     
                     const success = await sendToPg(flow_name, step_name, step_number, all_steps, "error", "Teste falhou por timeout");
                     if (!success) {
