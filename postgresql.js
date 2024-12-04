@@ -9,12 +9,12 @@ const client = new Client({
     port: 5432,
 });
 
-async function sendToPg(flow_name, step_name, step_number, all_steps, status, description) {
+async function sendToPg(flow_name, last_step, all_steps, status, description) {
 
-    console.log(`[sendToPg] Called!`);
+    console.log(`[sendToPg] Called!, inserting data. flow_name ${flow_name} | last_step: ${JSON.stringify(last_step)} |
+        all_steps: ${JSON.stringify(all_steps)} | status: ${status} | description: ${description}`);
 
     try {
-
         if (client._ending) {
             await client.connect(); // Reconecta se necessário
         }
@@ -26,7 +26,7 @@ async function sendToPg(flow_name, step_name, step_number, all_steps, status, de
         
         const res = await client.query(
             `INSERT INTO base.test_traces (flow_name, step_name, step_number, all_steps, status, description) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-            [flow_name, step_name, step_number, JSON.stringify(all_steps), status, description]
+            [flow_name, last_step.step_name, last_step.step_number, JSON.stringify(all_steps), status, description]
         );
 
         if (res.rows.length === 0) {
