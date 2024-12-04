@@ -55,6 +55,7 @@ function StartConfigTests() {
             received_calls,
             start_time: null,
             active: false,
+            failed: false,
             missing_steps: [],
             last_step: { step_name: null, step_number: null }
         });
@@ -84,8 +85,16 @@ function resetTestState(flow_name) {
 async function handleTestFailure(flow_name, reason) {
     const testStateToCompare = testState.get(flow_name);
     console.log(`[EasyTrace] ❌ Teste "${flow_name}" falhou: ${reason}`);
+
+    testStateToCompare.failed = true;
+
+    // Removendo timeout_id para envio ao banco de dados
+    const cleanedState = JSON.parse(JSON.stringify(testStateToCompare, (key, value) => {
+        if (key === 'timeout_id') return undefined; // Remove timeout_id to avoid circular reference
+        return value;
+    }));
     
-    const success = await sendToPg(flow_name, testStateToCompare.last_step, testStateToCompare.received_calls, "error", reason);
+    const success = await sendToPg(flow_name, testStateToCompare.last_step, cleanedState, "error", reason);
     if (!success) {
         console.error('[processTrace] Falha ao salvar o trace no banco de dados!');
     } else {
@@ -132,6 +141,12 @@ async function processTrace(trace) {
         const testStateToCompare = testState.get(flow_name);
         if (!testStateToCompare) {
             console.error(`[EasyTrace] Erro: Estado do teste não encontrado para o fluxo "${flow_name}"`);
+            return;
+        }
+
+        // Checando se o teste já chegou a falhar, se sim ignorar novos passos recebidos.
+        if (testStateToCompare.failed) {
+            console.log(`[EasyTrace] Ignorando passo "${step_name}" pois o fluxo "${flow_name}" já falhou.`);
             return;
         }
 
@@ -215,6 +230,11 @@ app.post('/api/receive_trace', async (req, res) => {
     const { flow_name, step_name, step_number, status, description } = req.body;
     if (!flow_name || !step_name || !step_number || !status || !description) {
         return res.status(400).send('[EasyTrace] Parâmetros inválidos ou incompletos.');
+    }
+
+    const testStateToCompare = testState.get(flow_name);
+    if (testStateToCompare && testStateToCompare.failed) {
+        return res.status(400).send(`[EasyTrace] O fluxo "${flow_name}" já falhou. Novos passos não serão processados.`);
     }
 
     console.log(`[EasyTrace] [${new Date().toISOString()}] 🔍 Trace recebido: Teste "${step_name}", Passo "${step_number}", Status "${status}", Descrição: ${description}`);
