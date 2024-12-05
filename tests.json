@@ -25,6 +25,27 @@
   {
     "flow_name": "EnviarLogin",
     "required_calls": {
+      "front_iniciado": { "expected_value": "success", "timeout": 3000 },
+      "front_check_value_length": { "expected_value": "success", "timeout": 3000 },
+      "front_create_login_info_item": { "expected_value": "success", "timeout": 3000 },
+      "front_check_formulario_valido": { "expected_value": "success", "timeout": 3000 },
+      "backend_recebendo": { "expected_value": "success", "timeout": 3000 },
+      "backend_associando_reqbody": { "expected_value": "success", "timeout": 3000 },
+      "backend_verif_usuario": { "expected_value": "success", "timeout": 3000 },
+      "backend_usuario_encontrado": { "expected_value": "success", "timeout": 3000 },
+      "backend_coletando_equipe": { "expected_value": "success", "timeout": 3000 },
+      "backend_equipe_encontrada": { "expected_value": "success", "timeout": 3000 },
+      "backend_verificando_credenciais": { "expected_value": "success", "timeout": 3000 },
+      "backend_credenciais_validas": { "expected_value": "success", "timeout": 3000 },
+      "backend_verificando_sessao": { "expected_value": "success", "timeout": 3000 },
+      "backend_sessao_populate": { "expected_value": "success", "timeout": 3000 },
+      "backend_coletando_dados_usuario": { "expected_value": "success", "timeout": 3000 },
+      "front_response_check": { "expected_value": "success", "timeout": 3000 }
+    }
+  },
+  {
+    "flow_name": "Teste",
+    "required_calls": {
       "passo_1": { "expected_value": "success", "timeout": 3000 },
       "passo_2": { "expected_value": "REGEX:\\d{2}", "timeout": 5000 },
       "passo_3": { "expected_value": "REGEX:\\item.+", "timeout": 6000 },
