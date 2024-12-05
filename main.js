@@ -57,7 +57,8 @@ function StartConfigTests() {
             active: false,
             failed: false,
             missing_steps: [],
-            last_step: { step_name: null, step_number: null }
+            last_step: { step_name: null, step_number: null },
+            accumulatedTimeout: 0,
         });
     
     });
@@ -72,6 +73,7 @@ function resetTestState(flow_name) {
         currentState.active = false;
         currentState.missing_steps = [];
         currentState.last_step = { step_name: null, step_number: null };
+        currentState.accumulatedTimeout = 0;
         Object.keys(currentState.received_calls).forEach(step => {
             currentState.received_calls[step].expected_value = null;
         });
@@ -123,13 +125,21 @@ async function checkTestCompletion(flow_name) {
 
 // Função para criar um timeout para um passo específico
 function createStepTimeout(flow_name, step_name, timeout) {
+
+    const testStateToCompare = testState.get(flow_name);
+    if (!testStateToCompare) {
+        console.error(`[EasyTrace] Erro: Estado do teste não encontrado para o fluxo "${flow_name}"`);
+        return;
+    }
+
+    testStateToCompare.accumulatedTimeout += timeout;
+
     return setTimeout(async () => {
-        const testStateToCompare = testState.get(flow_name);
-        if (testStateToCompare && testStateToCompare.active && testStateToCompare.received_calls[step_name].expected_value === null) {
+        if (testStateToCompare.active && testStateToCompare.received_calls[step_name].expected_value === null) {
             console.log(`[EasyTrace] ❌ Timeout para o passo "${step_name}" do fluxo "${flow_name}"`);
             await handleTestFailure(flow_name, `Timeout no passo "${step_name}"`);
         }
-    }, timeout);
+    }, testStateToCompare.accumulatedTimeout);
 }
 
 async function processTrace(trace) {
@@ -158,6 +168,7 @@ async function processTrace(trace) {
         if (!testStateToCompare.active) {
             testStateToCompare.active = true;
             testStateToCompare.start_time = Date.now();
+            testStateToCompare.accumulatedTimeout = 0;
             
             // Crie timeouts para todos os passos esperados
             Object.entries(testStateToCompare.received_calls).forEach(([step, data]) => {
